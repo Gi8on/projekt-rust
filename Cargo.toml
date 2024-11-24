@@ -1,0 +1,9 @@
+[package]
+name = "projekt"
+version = "0.1.0"
+edition = "2021"
+
+authors = ["Marcin Giembicki mg448503@students.mimuw.edu.pl"]
+
+[dependencies]
+ggez = "0.9.3"
