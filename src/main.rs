@@ -3,13 +3,13 @@ use ggez::{
 };
 type Sdt = f32; // Scren dimension type
 
-const SCREEN_WIDTH : Sdt = 800.0;
+const SCREEN_WIDTH : Sdt = 1600.0;
 const SCREEN_HEIGHT : Sdt = 600.0;
 const _SCREEN_DIMS : (Sdt, Sdt) = (SCREEN_WIDTH, SCREEN_HEIGHT);
 
 const PADDLE_WIDTH :  Sdt = 10.0;
 const PADDLE_HEIGHT : Sdt = 0.3 * SCREEN_HEIGHT;
-const PADDLE_SPEED : Sdt = 100.0;
+const PADDLE_SPEED : Sdt = 200.0;
 
 const INITIAL_BALL_VELOCITY : glam::Vec2 = glam::vec2(500.0, 500.0);
 const BALL_RADIUS : Sdt = 15.0;
@@ -26,7 +26,7 @@ const RIGHT_PADDLE_COLOR : graphics::Color = graphics::Color::BLUE;
 
 const SCREEN_COLOR : graphics::Color = graphics::Color::BLACK;
 
-const DESIRED_FPS : u32 = 60;
+const DESIRED_FPS : u32 = 20;
 
 struct Ball {
     position: glam::Vec2,
@@ -137,6 +137,24 @@ impl State {
             }
         }
     }
+
+    fn bouncing(&mut self) {
+        let ball = &mut self.ball;
+        let paddle_left = &self.paddle_left;
+        let paddle_right = &self.paddle_right;
+        if ball.position.x - ball.radius < paddle_left.position.x + paddle_left.width / 2.0
+            && ball.position.y > paddle_left.position.y - paddle_left.height / 2.0
+            && ball.position.y < paddle_left.position.y + paddle_left.height / 2.0
+        {
+            ball.velocity_vec.x = -ball.velocity_vec.x;
+        }
+        if ball.position.x + ball.radius > paddle_right.position.x - paddle_right.width / 2.0
+            && ball.position.y > paddle_right.position.y - paddle_right.height / 2.0
+            && ball.position.y < paddle_right.position.y + paddle_right.height / 2.0
+        {
+            self.ball.velocity_vec.x = -self.ball.velocity_vec.x;
+        }
+    }
 }
 
 fn main() -> GameResult{
@@ -155,15 +173,16 @@ impl ggez::event::EventHandler<GameError> for State {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         // let dt :f32 = ctx.time.delta();
         let dt = 1.0 / DESIRED_FPS as f32;
-        let mut num_of_updates = 0;
+        // let mut num_of_updates = 0;
         while ctx.time.check_update_time(DESIRED_FPS) {
             self.ball.update_different(dt);
             self.paddle_left.update(dt, self.input.left_up, self.input.left_down);
             self.paddle_right.update(dt, self.input.right_up, self.input.right_down);
-            num_of_updates += 1;
-            if num_of_updates > 1 {
-                println!("num of updates: {}", num_of_updates);
-            }
+            self.bouncing();
+            // num_of_updates += 1;
+            // if num_of_updates > 1 {
+            //    println!("num of updates: {}", num_of_updates);
+            //}
         }
         Ok(())
     }
