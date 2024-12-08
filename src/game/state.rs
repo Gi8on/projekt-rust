@@ -49,7 +49,7 @@ impl State {
                 config.ball_radius,
                 config.ball_initial_velocity,
                 config.ball_color,
-                (0.0, config.screen_width, 0.0, config.screen_height),
+                (0.0, 0.0, config.screen_width, config.screen_height),
                 ctx,
             ),
             input: Input {

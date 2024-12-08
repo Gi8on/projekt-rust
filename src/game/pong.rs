@@ -13,7 +13,7 @@ const PADDLE_SPEED: f32 = 200.0;
 const LEFT_PADDLE_COLOR: graphics::Color = graphics::Color::RED;
 const RIGHT_PADDLE_COLOR: graphics::Color = graphics::Color::BLUE;
 
-const INITIAL_BALL_VELOCITY: glam::Vec2 = glam::vec2(500.0, 500.0);
+const INITIAL_BALL_VELOCITY: glam::Vec2 = glam::vec2(50.0, 50.0);
 const BALL_RADIUS: f32 = 15.0;
 const BALL_COLOR: graphics::Color = graphics::Color::WHITE;
 

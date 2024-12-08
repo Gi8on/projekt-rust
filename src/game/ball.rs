@@ -27,7 +27,7 @@ impl Ball {
         initial_velocity: glam::Vec2,
         ball_color: graphics::Color,
         bounding_area: (f32, f32, f32, f32),
-        ctx: &mut ggez::Context,
+        ctx: &ggez::Context,
     ) -> Self {
         Self {
             position: glam::vec2(x, y),
@@ -37,9 +37,9 @@ impl Ball {
             ball_mesh: graphics::Mesh::new_circle(
                 ctx,
                 ggez::graphics::DrawMode::fill(),
-                glam::vec2(x, y),
+                glam::vec2(0.0,0.0),
                 radius,
-                1.0,
+                1.0, 
                 ball_color,
             )
             .unwrap(),
@@ -64,10 +64,10 @@ impl Ball {
     // costlier but more accurate version of update
     pub fn update_different(&mut self, dt: f32) {
         let mut bb = self.bounding_area;
-        bb.0 -= self.radius;
+        bb.0 += self.radius;
         bb.1 += self.radius;
         bb.2 -= self.radius;
-        bb.3 += self.radius;
+        bb.3 -= self.radius;
 
         self.position += dt * self.velocity_vec;
         let y1 = bb.1 - self.position.y;
@@ -80,10 +80,10 @@ impl Ball {
             self.position.y = bb.3 - y2;
         }
         let x1 = bb.0 - self.position.x;
-        let x2 = self.position.x - bb.0;
+        let x2 = self.position.x - bb.2;
         if x1 > 0.0 {
             self.velocity_vec.x = -self.velocity_vec.x;
-            self.position.x = bb.2 + x1
+            self.position.x = bb.0 + x1
         } else if x2 > 0.0 {
             self.velocity_vec.x = -self.velocity_vec.x;
             self.position.x = bb.2 - x2;
