@@ -2,7 +2,7 @@ use ggez::{event, glam, graphics, GameResult};
 
 use super::state::State;
 
-pub const SCREEN_WIDTH: f32 = 1600.0;
+pub const SCREEN_WIDTH: f32 = 800.0;
 pub const SCREEN_HEIGHT: f32 = 600.0;
 pub const _SCREEN_DIMS: (f32, f32) = (SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -13,7 +13,7 @@ const PADDLE_SPEED: f32 = 200.0;
 const LEFT_PADDLE_COLOR: graphics::Color = graphics::Color::RED;
 const RIGHT_PADDLE_COLOR: graphics::Color = graphics::Color::BLUE;
 
-const INITIAL_BALL_VELOCITY: glam::Vec2 = glam::vec2(50.0, 50.0);
+const INITIAL_BALL_VELOCITY: glam::Vec2 = glam::vec2(200.0, 200.0);
 const BALL_RADIUS: f32 = 15.0;
 const BALL_COLOR: graphics::Color = graphics::Color::WHITE;
 

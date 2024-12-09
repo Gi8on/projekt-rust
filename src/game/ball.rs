@@ -1,11 +1,14 @@
 use ggez::{
     glam,
+    GameResult,
     graphics::{self, Canvas},
 };
 
 pub struct Ball {
+    initial_position: glam::Vec2,
     position: glam::Vec2,
     radius: f32,
+    initial_velocity: glam::Vec2,
     velocity_vec: glam::Vec2,
     bounding_area: (f32, f32, f32, f32),
     ball_mesh: graphics::Mesh,
@@ -30,16 +33,18 @@ impl Ball {
         ctx: &ggez::Context,
     ) -> Self {
         Self {
+            initial_position: glam::vec2(x, y),
             position: glam::vec2(x, y),
             radius,
+            initial_velocity,
             velocity_vec: initial_velocity,
             bounding_area,
             ball_mesh: graphics::Mesh::new_circle(
                 ctx,
                 ggez::graphics::DrawMode::fill(),
-                glam::vec2(0.0,0.0),
+                glam::vec2(0.0, 0.0),
                 radius,
-                1.0, 
+                0.1,
                 ball_color,
             )
             .unwrap(),
@@ -57,16 +62,33 @@ impl Ball {
     //     self.position += dt * self.velocity_vec;
     // }
 
-    pub fn _get_position(&self) -> glam::Vec2 {
+    pub fn reset(&mut self) {
+        self.position = self.initial_position;
+        self.velocity_vec = self.initial_velocity;
+    }
+
+    pub fn get_position(&self) -> glam::Vec2 {
         self.position
     }
 
+    pub fn get_radius(&self) -> f32 {
+        self.radius
+    }
+
+    pub fn get_velocity(&self) -> glam::Vec2 {
+        self.velocity_vec
+    }
+
+    pub fn set_velocity(&mut self, velocity: glam::Vec2) {
+        self.velocity_vec = velocity;
+    }
+
+
+
     // costlier but more accurate version of update
-    pub fn update_different(&mut self, dt: f32) {
+    pub fn update_different(&mut self, dt: f32) -> GameResult<Option<bool>> {
         let mut bb = self.bounding_area;
-        bb.0 += self.radius;
         bb.1 += self.radius;
-        bb.2 -= self.radius;
         bb.3 -= self.radius;
 
         self.position += dt * self.velocity_vec;
@@ -82,15 +104,16 @@ impl Ball {
         let x1 = bb.0 - self.position.x;
         let x2 = self.position.x - bb.2;
         if x1 > 0.0 {
-            self.velocity_vec.x = -self.velocity_vec.x;
-            self.position.x = bb.0 + x1
+            return Ok(Some(true));
         } else if x2 > 0.0 {
-            self.velocity_vec.x = -self.velocity_vec.x;
-            self.position.x = bb.2 - x2;
+            return Ok(Some(false));
         }
+        Ok(None)
+        
     }
 
     pub fn draw(&self, canvas: &mut Canvas) {
         canvas.draw(&self.ball_mesh, self.position);
+
     }
 }
