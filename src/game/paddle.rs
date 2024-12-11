@@ -1,34 +1,34 @@
 use super::ball::Ball;
+use super::paddle_like::PaddleLike;
 use ggez::{glam, graphics};
 
-const PADDLE_TO_BALL_SPEEDUP: f32 = 0.1;
 const _HIT_COLOR: graphics::Color = graphics::Color::GREEN;
 
-pub struct Paddle {
+pub struct Paddle<E: PaddleLike> {
     position: glam::Vec2,
-    half_height: f32,
-    half_width: f32,
+    vertical_range: f32,
     color: graphics::Color,
+    paddle_like: E,
     bounding_area: (f32, f32),
     speed: f32,
     velocity: f32,
 }
 
-impl Paddle {
+impl<E: PaddleLike> Paddle<E> {
     pub fn new(
         x: f32,
         y: f32,
-        width: f32,
         color: graphics::Color,
+        paddle_like: E,
         height: f32,
         bounding_area: (f32, f32),
         speed: f32,
     ) -> Self {
         Self {
             position: glam::vec2(x, y),
-            half_height: height / 2.0,
-            half_width: width / 2.0,
+            vertical_range: height / 2.0,
             color,
+            paddle_like,
             bounding_area,
             speed,
             velocity: 0.0,
@@ -36,21 +36,7 @@ impl Paddle {
     }
 
     pub fn bouncing(&self, ball: &Ball) -> Option<glam::Vec2> {
-        let ball_pos = ball.get_position();
-        let r = ball.get_radius();
-        let mut ball_vel = ball.get_velocity();
-        let y_hit =ball_pos.y - self.position.y;
-        if (ball_pos.x - self.position.x).abs() < r + self.half_width
-            && y_hit.abs() < self.half_height
-        {
-            ball_vel.x = -ball_vel.x;
-            ball_vel += glam::Vec2::splat(self.velocity * self.velocity.signum() * ball_vel.y.signum()) * PADDLE_TO_BALL_SPEEDUP;
-            let frac = ball_vel.x.signum() * y_hit / self.half_height;
-            ball_vel = glam::Vec2::from_angle(std::f32::consts::FRAC_PI_4 * frac).rotate(ball_vel);
-            // println!("ball vel {}", ball_vel);
-            return Some(ball_vel);
-        }
-        None
+        self.paddle_like.bouncing(self, ball)
     }
 
     pub fn update(&mut self, dt: f32, up: bool, down: bool) {
@@ -62,20 +48,26 @@ impl Paddle {
             self.velocity += self.speed;
         }
         self.position.y += self.velocity * dt;
-        if self.position.y - self.half_height < self.bounding_area.0 {
-            self.position.y = self.bounding_area.0 + self.half_height;
-        } else if self.position.y + self.half_height > self.bounding_area.1 {
-            self.position.y = self.bounding_area.1 - self.half_height;
+        if self.position.y - self.vertical_range < self.bounding_area.0 {
+            self.position.y = self.bounding_area.0 + self.vertical_range;
+        } else if self.position.y + self.vertical_range > self.bounding_area.1 {
+            self.position.y = self.bounding_area.1 - self.vertical_range;
         }
     }
 
+    pub fn get_position(&self) -> glam::Vec2 {
+        self.position
+    }
+
+    pub fn get_velocity(&self) -> f32 {
+        self.velocity
+    }
+
+    pub fn get_color(&self) -> graphics::Color {
+        self.color
+    }
+
     pub fn draw(&self, canvas: &mut graphics::Canvas) {
-        canvas.draw(
-            &graphics::Quad,
-                graphics::DrawParam::new()
-                    .dest(self.position - glam::vec2(self.half_width, self.half_height))
-                    .scale(2.0 * glam::vec2(self.half_width, self.half_height))
-                    .color(self.color),
-            );
+        self.paddle_like.draw(self, canvas);
     }
 }

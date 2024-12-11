@@ -1,7 +1,7 @@
 use ggez::{
     glam,
-    GameResult,
     graphics::{self, Canvas},
+    GameResult,
 };
 
 pub struct Ball {
@@ -83,8 +83,6 @@ impl Ball {
         self.velocity_vec = velocity;
     }
 
-
-
     // costlier but more accurate version of update
     pub fn update_different(&mut self, dt: f32) -> GameResult<Option<bool>> {
         let mut bb = self.bounding_area;
@@ -109,11 +107,9 @@ impl Ball {
             return Ok(Some(false));
         }
         Ok(None)
-        
     }
 
     pub fn draw(&self, canvas: &mut Canvas) {
         canvas.draw(&self.ball_mesh, self.position);
-
     }
 }

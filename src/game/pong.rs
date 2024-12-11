@@ -1,3 +1,4 @@
+use super::paddle_like::RectangularPaddle;
 use ggez::{event, glam, graphics, GameResult};
 
 use super::state::State;
@@ -35,6 +36,8 @@ pub fn pong() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Pong"))
         .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTH, SCREEN_HEIGHT))
         .build()?;
+    let left = RectangularPaddle::new(PADDLE_HEIGHT / 2.0, PADDLE_WIDTH / 2.0, 0.1);
+    let right = RectangularPaddle::new(PADDLE_HEIGHT / 2.0, PADDLE_WIDTH / 2.0, 0.1);
     let state = State::new(
         Configuration {
             screen_width: SCREEN_WIDTH,
@@ -48,6 +51,8 @@ pub fn pong() -> GameResult {
             left_paddle_color: LEFT_PADDLE_COLOR,
             right_paddle_color: RIGHT_PADDLE_COLOR,
         },
+        left,
+        right,
         &mut ctx,
     );
     // let mut c = conf::Conf::new();

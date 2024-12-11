@@ -1,3 +1,4 @@
+use super::paddle_like::PaddleLike;
 use ggez::{graphics, Context, GameError, GameResult};
 
 const DESIRED_FPS: u32 = 20;
@@ -18,25 +19,25 @@ struct Input {
 struct Game {
     left_score: u32,
     right_score: u32,
-    timer: f32,
+    _timer: f32,
 }
 
-pub struct State {
-    paddle_left: Paddle,
-    paddle_right: Paddle,
+pub struct State<L: PaddleLike, R: PaddleLike> {
+    paddle_left: Paddle<L>,
+    paddle_right: Paddle<R>,
     input: Input,
     ball: Ball,
     game: Game,
 }
 
-impl State {
-    pub fn new(config: Configuration, ctx: &mut Context) -> Self {
+impl<L: PaddleLike, R: PaddleLike> State<L, R> {
+    pub fn new(config: Configuration, left: L, right: R, ctx: &mut Context) -> Self {
         Self {
             paddle_left: Paddle::new(
                 config.paddle_width / 2.0,
                 config.screen_height / 2.0,
-                config.paddle_width,
                 config.left_paddle_color,
+                left,
                 config.paddle_height,
                 (0.0, config.screen_height),
                 config.paddle_speed,
@@ -44,8 +45,8 @@ impl State {
             paddle_right: Paddle::new(
                 config.screen_width - config.paddle_width / 2.0,
                 config.screen_height / 2.0,
-                config.paddle_width,
                 config.right_paddle_color,
+                right,
                 config.paddle_height,
                 (0.0, config.screen_height),
                 config.paddle_speed,
@@ -68,7 +69,7 @@ impl State {
             game: Game {
                 left_score: 0,
                 right_score: 0,
-                timer: 0.0,
+                _timer: 0.0,
             },
         }
     }
@@ -85,7 +86,7 @@ impl State {
     }
 }
 
-impl ggez::event::EventHandler<GameError> for State {
+impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for State<L, R> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         // let dt :f32 = ctx.time.delta();
         let dt = 1.0 / DESIRED_FPS as f32;
@@ -100,9 +101,12 @@ impl ggez::event::EventHandler<GameError> for State {
                     self.game.left_score += 1;
                     println!("left scored!!!!");
                 }
-                println!("game score: left player's points: {}, rigth player's points: {}", self.game.left_score, self.game.right_score);
+                println!(
+                    "game score: left player's points: {}, right player's points: {}",
+                    self.game.left_score, self.game.right_score
+                );
                 self.ball.reset();
-            }   
+            }
             self.paddle_left
                 .update(dt, self.input.left_up, self.input.left_down);
             self.paddle_right
