@@ -2,7 +2,8 @@ use super::ball::Ball;
 use ggez::{glam, graphics};
 
 const PADDLE_TO_BALL_SPEEDUP: f32 = 0.1;
-const HIT_COLOR: graphics::Color = graphics::Color::GREEN;
+const _HIT_COLOR: graphics::Color = graphics::Color::GREEN;
+
 pub struct Paddle {
     position: glam::Vec2,
     half_height: f32,
@@ -38,11 +39,15 @@ impl Paddle {
         let ball_pos = ball.get_position();
         let r = ball.get_radius();
         let mut ball_vel = ball.get_velocity();
+        let y_hit =ball_pos.y - self.position.y;
         if (ball_pos.x - self.position.x).abs() < r + self.half_width
-            && (ball_pos.y - self.position.y).abs() < self.half_height
+            && y_hit.abs() < self.half_height
         {
             ball_vel.x = -ball_vel.x;
             ball_vel += glam::Vec2::splat(self.velocity * self.velocity.signum() * ball_vel.y.signum()) * PADDLE_TO_BALL_SPEEDUP;
+            let frac = ball_vel.x.signum() * y_hit / self.half_height;
+            ball_vel = glam::Vec2::from_angle(std::f32::consts::FRAC_PI_4 * frac).rotate(ball_vel);
+            // println!("ball vel {}", ball_vel);
             return Some(ball_vel);
         }
         None

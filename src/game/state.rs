@@ -93,7 +93,7 @@ impl ggez::event::EventHandler<GameError> for State {
         while ctx.time.check_update_time(DESIRED_FPS) {
             if let Ok(Some(right_scored)) = self.ball.update_different(dt) {
                 println!("ball out of bounds!!!");
-                if (right_scored) {
+                if right_scored {
                     self.game.right_score += 1;
                     println!("right scored!!!")
                 } else {
