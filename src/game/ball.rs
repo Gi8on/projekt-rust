@@ -1,8 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 use ggez::{
     glam,
     graphics::{self, Canvas},
     GameResult,
 };
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BallData {
+    position: (f32, f32),
+    velocity: (f32, f32),
+}
 
 pub struct Ball {
     initial_position: glam::Vec2,
@@ -111,5 +119,12 @@ impl Ball {
 
     pub fn draw(&self, canvas: &mut Canvas) {
         canvas.draw(&self.ball_mesh, self.position);
+    }
+
+    pub fn serialize(&self) -> BallData {
+        BallData {
+            position: self.position.into(),
+            velocity: self.velocity_vec.into(),
+        }
     }
 }

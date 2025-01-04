@@ -92,6 +92,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         let dt = 1.0 / DESIRED_FPS as f32;
         // let mut num_of_updates = 0;
         while ctx.time.check_update_time(DESIRED_FPS) {
+            // println!("dt: {}", dt);
             if let Ok(Some(right_scored)) = self.ball.update_different(dt) {
                 println!("ball out of bounds!!!");
                 if right_scored {
@@ -138,6 +139,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         keyinput: ggez::input::keyboard::KeyInput,
         _repeat: bool,
     ) -> GameResult {
+        println!("key pressed: {:?}", keyinput.keycode);
         match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::W) => self.input.left_up = true,
             Some(ggez::input::keyboard::KeyCode::S) => self.input.left_down = true,
@@ -153,6 +155,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         _ctx: &mut Context,
         keyinput: ggez::input::keyboard::KeyInput,
     ) -> GameResult {
+        println!("key released: {:?}", keyinput.keycode);
         match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::W) => self.input.left_up = false,
             Some(ggez::input::keyboard::KeyCode::S) => self.input.left_down = false,

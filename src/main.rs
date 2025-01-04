@@ -1,7 +1,6 @@
 use ggez::GameResult;
 
-mod game;
-
+use projekt::game::pong::pong;
 use game::pong::pong;
 
 fn main() -> GameResult {
