@@ -1,10 +1,13 @@
-use super::ball::Ball;
+use super::ball::BallAbstract;
+use super::configuration::Configuration;
+use super::configuration::FromConfiguration;
 use super::paddle::Paddle;
 use ggez::{glam, graphics};
 
 pub trait PaddleLike {
     fn draw(&self, paddle: &Paddle<impl PaddleLike>, canvas: &mut graphics::Canvas);
-    fn bouncing(&self, paddle: &Paddle<impl PaddleLike>, ball: &Ball) -> Option<glam::Vec2>;
+    fn bouncing(&self, paddle: &Paddle<impl PaddleLike>, ball: &BallAbstract)
+        -> Option<glam::Vec2>;
 }
 
 pub struct RectangularPaddle {
@@ -23,6 +26,16 @@ impl RectangularPaddle {
     }
 }
 
+impl FromConfiguration for RectangularPaddle {
+    fn from_configuration(config: &Configuration) -> Self {
+        Self::new(
+            config.paddle_height / 2.0,
+            config.paddle_width / 2.0,
+            config.paddle_to_ball_speedup,
+        )
+    }
+}
+
 impl PaddleLike for RectangularPaddle {
     fn draw(&self, paddle: &Paddle<impl PaddleLike>, canvas: &mut graphics::Canvas) {
         canvas.draw(
@@ -34,7 +47,11 @@ impl PaddleLike for RectangularPaddle {
         );
     }
 
-    fn bouncing(&self, paddle: &Paddle<impl PaddleLike>, ball: &Ball) -> Option<glam::Vec2> {
+    fn bouncing(
+        &self,
+        paddle: &Paddle<impl PaddleLike>,
+        ball: &BallAbstract,
+    ) -> Option<glam::Vec2> {
         let ball_pos = ball.get_position();
         let r = ball.get_radius();
         let mut ball_vel = ball.get_velocity();

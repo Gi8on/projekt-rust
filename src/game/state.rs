@@ -5,17 +5,31 @@ const DESIRED_FPS: u32 = 20;
 
 const SCREEN_COLOR: graphics::Color = graphics::Color::BLACK;
 
-use super::ball::Ball;
+use super::ball::{Ball, BallAbstract};
+use super::configuration::{Configuration, FromConfiguration};
+use super::paddle::paddle_from_configuration;
 use super::paddle::Paddle;
-use super::pong::Configuration;
 
-struct Input {
+#[derive(Debug, Clone, Copy)]
+pub struct Input {
     left_up: bool,
     left_down: bool,
     right_up: bool,
     right_down: bool,
 }
 
+impl Input {
+    pub fn new(left_up: bool, left_down: bool, right_up: bool, right_down: bool) -> Self {
+        Self {
+            left_up,
+            left_down,
+            right_up,
+            right_down,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 struct Game {
     left_score: u32,
     right_score: u32,
@@ -30,36 +44,13 @@ pub struct State<L: PaddleLike, R: PaddleLike> {
     game: Game,
 }
 
-impl<L: PaddleLike, R: PaddleLike> State<L, R> {
-    pub fn new(config: Configuration, left: L, right: R, ctx: &mut Context) -> Self {
+impl<L: PaddleLike + FromConfiguration, R: PaddleLike + FromConfiguration> State<L, R> {
+    pub fn new(config: Configuration, ctx: &mut Context) -> Self {
+        let (paddle_left, paddle_right) = paddle_from_configuration(&config);
         Self {
-            paddle_left: Paddle::new(
-                config.paddle_width / 2.0,
-                config.screen_height / 2.0,
-                config.left_paddle_color,
-                left,
-                config.paddle_height,
-                (0.0, config.screen_height),
-                config.paddle_speed,
-            ),
-            paddle_right: Paddle::new(
-                config.screen_width - config.paddle_width / 2.0,
-                config.screen_height / 2.0,
-                config.right_paddle_color,
-                right,
-                config.paddle_height,
-                (0.0, config.screen_height),
-                config.paddle_speed,
-            ),
-            ball: Ball::new(
-                config.screen_width / 2.0,
-                config.screen_height / 2.0,
-                config.ball_radius,
-                config.ball_initial_velocity,
-                config.ball_color,
-                (0.0, 0.0, config.screen_width, config.screen_height),
-                ctx,
-            ),
+            paddle_left,
+            paddle_right,
+            ball: Ball::from_configuration(&config, ctx),
             input: Input {
                 left_up: false,
                 left_down: false,
@@ -73,17 +64,49 @@ impl<L: PaddleLike, R: PaddleLike> State<L, R> {
             },
         }
     }
+}
 
-    fn bouncing(&mut self) {
-        let ball = &mut self.ball;
-        let v1 = self.paddle_left.bouncing(ball);
-        let v2 = self.paddle_right.bouncing(ball);
-        if let Some(v) = v1 {
-            ball.set_velocity(v);
-        } else if let Some(v) = v2 {
-            ball.set_velocity(v);
+fn bouncing<L: PaddleLike, R: PaddleLike>(
+    ball: &mut BallAbstract,
+    paddle_left: &Paddle<L>,
+    paddle_right: &Paddle<R>,
+) {
+    let v1 = paddle_left.bouncing(ball);
+    let v2 = paddle_right.bouncing(ball);
+    if let Some(v) = v1 {
+        ball.set_velocity(v);
+    } else if let Some(v) = v2 {
+        ball.set_velocity(v);
+    }
+}
+
+pub enum RoundResult {
+    LeftScored,
+    RightScored,
+    None,
+}
+
+pub fn game_frame<L: PaddleLike, R: PaddleLike>(
+    ball: &mut BallAbstract,
+    paddle_left: &mut Paddle<L>,
+    paddle_right: &mut Paddle<R>,
+    dt: f32,
+    input: &Input,
+) -> RoundResult {
+    if let Ok(Some(right_scored)) = ball.update_different(dt) {
+        ball.reset();
+        paddle_left.reset();
+        paddle_right.reset();
+        if right_scored {
+            return RoundResult::RightScored;
+        } else {
+            return RoundResult::LeftScored;
         }
     }
+    paddle_left.update(dt, input.left_up, input.left_down);
+    paddle_right.update(dt, input.right_up, input.right_down);
+    bouncing(ball, paddle_left, paddle_right);
+    RoundResult::None
 }
 
 impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for State<L, R> {
@@ -93,26 +116,29 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         // let mut num_of_updates = 0;
         while ctx.time.check_update_time(DESIRED_FPS) {
             // println!("dt: {}", dt);
-            if let Ok(Some(right_scored)) = self.ball.update_different(dt) {
-                println!("ball out of bounds!!!");
-                if right_scored {
-                    self.game.right_score += 1;
-                    println!("right scored!!!")
-                } else {
+            match game_frame(
+                &mut self.ball.ball_abstract,
+                &mut self.paddle_left,
+                &mut self.paddle_right,
+                dt,
+                &self.input,
+            ) {
+                RoundResult::LeftScored => {
                     self.game.left_score += 1;
-                    println!("left scored!!!!");
+                    println!(
+                        "Left scored! left: {}, right: {}",
+                        self.game.left_score, self.game.right_score
+                    );
                 }
-                println!(
-                    "game score: left player's points: {}, right player's points: {}",
-                    self.game.left_score, self.game.right_score
-                );
-                self.ball.reset();
+                RoundResult::RightScored => {
+                    self.game.right_score += 1;
+                    println!(
+                        "Right scored! left: {}, right: {}",
+                        self.game.left_score, self.game.right_score
+                    );
+                }
+                RoundResult::None => (),
             }
-            self.paddle_left
-                .update(dt, self.input.left_up, self.input.left_down);
-            self.paddle_right
-                .update(dt, self.input.right_up, self.input.right_down);
-            self.bouncing();
             // num_of_updates += 1;
             // if num_of_updates > 1 {
             //    println!("num of updates: {}", num_of_updates);
@@ -139,7 +165,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         keyinput: ggez::input::keyboard::KeyInput,
         _repeat: bool,
     ) -> GameResult {
-        println!("key pressed: {:?}", keyinput.keycode);
+        // println!("key pressed: {:?}", keyinput.keycode);
         match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::W) => self.input.left_up = true,
             Some(ggez::input::keyboard::KeyCode::S) => self.input.left_down = true,
@@ -155,7 +181,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Stat
         _ctx: &mut Context,
         keyinput: ggez::input::keyboard::KeyInput,
     ) -> GameResult {
-        println!("key released: {:?}", keyinput.keycode);
+        // println!("key released: {:?}", keyinput.keycode);
         match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::W) => self.input.left_up = false,
             Some(ggez::input::keyboard::KeyCode::S) => self.input.left_down = false,

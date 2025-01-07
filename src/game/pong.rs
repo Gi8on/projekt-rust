@@ -1,60 +1,17 @@
-use super::paddle_like::RectangularPaddle;
-use ggez::{event, glam, graphics, GameResult};
+use super::{configuration::Configuration, paddle_like::RectangularPaddle};
+use ggez::{event, GameResult};
 
 use super::state::State;
 
-pub const SCREEN_WIDTH: f32 = 800.0;
-pub const SCREEN_HEIGHT: f32 = 600.0;
-pub const _SCREEN_DIMS: (f32, f32) = (SCREEN_WIDTH, SCREEN_HEIGHT);
-
-const PADDLE_WIDTH: f32 = 10.0;
-const PADDLE_HEIGHT: f32 = 0.3 * SCREEN_HEIGHT;
-const PADDLE_SPEED: f32 = 200.0;
-
-const LEFT_PADDLE_COLOR: graphics::Color = graphics::Color::RED;
-const RIGHT_PADDLE_COLOR: graphics::Color = graphics::Color::BLUE;
-
-const INITIAL_BALL_VELOCITY: glam::Vec2 = glam::vec2(200.0, 200.0);
-const BALL_RADIUS: f32 = 15.0;
-const BALL_COLOR: graphics::Color = graphics::Color::WHITE;
-
-pub struct Configuration {
-    pub screen_width: f32,
-    pub screen_height: f32,
-    pub ball_radius: f32,
-    pub ball_color: ggez::graphics::Color,
-    pub ball_initial_velocity: glam::Vec2,
-    pub paddle_width: f32,
-    pub paddle_height: f32,
-    pub paddle_speed: f32,
-    pub left_paddle_color: ggez::graphics::Color,
-    pub right_paddle_color: ggez::graphics::Color,
-}
-
 pub fn pong() -> GameResult {
+    let config = Configuration::default();
+    let screen_width = config.screen_width;
+    let screen_height = config.screen_height;
     let (mut ctx, event_loop) = ggez::ContextBuilder::new("pong", "marcin g")
         .window_setup(ggez::conf::WindowSetup::default().title("Pong"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTH, SCREEN_HEIGHT))
+        .window_mode(ggez::conf::WindowMode::default().dimensions(screen_width, screen_height))
         .build()?;
-    let left = RectangularPaddle::new(PADDLE_HEIGHT / 2.0, PADDLE_WIDTH / 2.0, 0.1);
-    let right = RectangularPaddle::new(PADDLE_HEIGHT / 2.0, PADDLE_WIDTH / 2.0, 0.1);
-    let state = State::new(
-        Configuration {
-            screen_width: SCREEN_WIDTH,
-            screen_height: SCREEN_HEIGHT,
-            ball_radius: BALL_RADIUS,
-            ball_color: BALL_COLOR,
-            ball_initial_velocity: INITIAL_BALL_VELOCITY,
-            paddle_width: PADDLE_WIDTH,
-            paddle_height: PADDLE_HEIGHT,
-            paddle_speed: PADDLE_SPEED,
-            left_paddle_color: LEFT_PADDLE_COLOR,
-            right_paddle_color: RIGHT_PADDLE_COLOR,
-        },
-        left,
-        right,
-        &mut ctx,
-    );
+    let state = State::<RectangularPaddle, RectangularPaddle>::new(config, &mut ctx);
     // let mut c = conf::Conf::new();
     // c.window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0));
     event::run(ctx, event_loop, state);
