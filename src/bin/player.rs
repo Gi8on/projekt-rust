@@ -1,16 +1,12 @@
 use ggez::event;
 use projekt::{
-    common::messages::{get_message, send_message, Message, ReadType, Side}, configuration::Configuration, messages::wait_for_message, paddle_like::RectangularPaddle, player_state::PlayerState
+    common::messages::{get_message, send_message, Message, ReadType, Side}, configuration::Configuration, messages::wait_for_message, paddle_like::RectangularPaddle, player_state::PlayerState,
+    arguments::parse_player,
 };
 use std::{
     net::{SocketAddr, UdpSocket},
     str::FromStr,
 };
-
-const PORT: usize = 8070;
-const IP: &str = "0.0.0.0";
-const SERVER_PORT: usize = 8080;
-const SERVER_IP: &str = "127.0.0.1";
 
 fn connect_to_server(socket: &UdpSocket, server: &SocketAddr) -> Side {
     println!("Trying to connect to server");
@@ -43,20 +39,23 @@ fn connect_to_server(socket: &UdpSocket, server: &SocketAddr) -> Side {
 }
 
 fn main() -> ggez::GameResult {
-    let server_address_string: String = format!("{}:{}", SERVER_IP, SERVER_PORT);
+    let (ip, port, server_ip, server_port) = parse_player();
+
+    let server_address_string: String = format!("{}:{}", server_ip, server_port);
     let server_address =
         SocketAddr::from_str(&server_address_string).expect("Couldn't parse server address");
     println!("Connecting to server at {}", server_address);
 
     // Bind the socket to an address and port
-    let socket = UdpSocket::bind(format!("{}:{}", IP, PORT)).expect("couldn't bind to address");
-    println!("Binded on {}:{}", IP, PORT);
+    let socket = UdpSocket::bind(format!("{}:{}", ip, port)).expect("couldn't bind to address");
+    println!("Binded on {}:{}", ip, port);
 
     socket
         .set_read_timeout(None)
         .expect("set_read_timeout call failed");
     let side = connect_to_server(&socket, &server_address);
 
+    println!("Waiting for game to start");
     wait_for_message(&socket, &server_address, Message::Ready);
 
     socket

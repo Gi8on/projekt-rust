@@ -16,3 +16,5 @@ Simple Pong game:
 Multiplayer online:
 - checking for basic corectness (are adresses correct, are udp messages in order)
 - rozbicie structow paddle i ball na wersje do rysowanie i do logiki z odbijaniem - pozwala nie implementowac tego samego dwa razy
+- usage for player: cargo --bin player -- --port (here port) --ip (here ip default on 127.0.0.1) --server_ip (here server_ip default 127.0.0.1) --server_port
+- usage for server: cargo --bin player -- --port (here port) --ip (here ip default on 127.0.0.1)

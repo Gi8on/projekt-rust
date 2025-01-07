@@ -3,11 +3,10 @@ use projekt::{
     configuration::{Configuration, FromConfiguration},
     messages::{send_message, send_safely},
     multiplayer_pong::MultiplayerPong,
+    arguments::parse_server,
 };
 use std::{net::UdpSocket, thread, time::Instant};
 
-const PORT: usize = 8080;
-const IP: &str = "0.0.0.0";
 const TICKSPERSECOND: u64 = 30;
 
 #[derive(Default)]
@@ -48,9 +47,11 @@ fn accept_player(socket: &UdpSocket, side: Side) -> std::net::SocketAddr {
 }
 
 fn main() {
+    let (ip, port) = parse_server();
+
     // Bind the socket to an address and port
-    let socket = UdpSocket::bind(format!("{}:{}", IP, PORT)).expect("couldn't bind to address");
-    println!("Listening on {}:{}", IP, PORT);
+    let socket = UdpSocket::bind(format!("{}:{}", ip, port)).expect("couldn't bind to address");
+    println!("Listening on {}:{}", ip, port);
 
     socket
         .set_read_timeout(None)
