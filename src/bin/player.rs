@@ -1,14 +1,18 @@
 use ggez::event;
 use projekt::{
-    common::messages::{get_message, send_message, Message, ReadType, Side}, configuration::Configuration, messages::wait_for_message, paddle_like::RectangularPaddle, player_state::PlayerState,
     arguments::parse_player,
+    common::messages::{get_message, send_message, Message, PlayerId, ReadType, Side},
+    configuration::Configuration,
+    messages::wait_for_message,
+    paddle_like::RectangularPaddle,
+    player_state::PlayerState,
 };
 use std::{
     net::{SocketAddr, UdpSocket},
     str::FromStr,
 };
 
-fn connect_to_server(socket: &UdpSocket, server: &SocketAddr) -> Side {
+fn connect_to_server(socket: &UdpSocket, server: &SocketAddr) -> (Side, PlayerId) {
     println!("Trying to connect to server");
     let join = Message::Join;
     loop {
@@ -24,9 +28,9 @@ fn connect_to_server(socket: &UdpSocket, server: &SocketAddr) -> Side {
         }
 
         match msg {
-            Message::Ok(side) => {
+            Message::Ok(side, player_id) => {
                 println!("Connected to server as {:?} player", side);
-                return side;
+                return (side, player_id);
             }
             Message::Taken => {
                 panic!("Game is full");
@@ -53,7 +57,7 @@ fn main() -> ggez::GameResult {
     socket
         .set_read_timeout(None)
         .expect("set_read_timeout call failed");
-    let side = connect_to_server(&socket, &server_address);
+    let (side, player_id) = connect_to_server(&socket, &server_address);
 
     println!("Waiting for game to start");
     wait_for_message(&socket, &server_address, Message::Ready);
@@ -75,6 +79,7 @@ fn main() -> ggez::GameResult {
         side,
         socket,
         server_address,
+        player_id,
     );
     // let mut c = conf::Conf::new();
     // c.window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0));

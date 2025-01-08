@@ -1,6 +1,5 @@
 use clap::Parser;
 
-
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct ServerArgs {
@@ -32,7 +31,7 @@ pub fn parse_server() -> (String, u16) {
     (args.ip, args.port)
 }
 
-pub fn parse_player()-> (String, u16, String, u16) {
+pub fn parse_player() -> (String, u16, String, u16) {
     let args = PlayerArgs::parse();
     (args.ip, args.port, args.server_ip, args.server_port)
 }

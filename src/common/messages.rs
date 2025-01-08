@@ -4,6 +4,7 @@ use std::net::{SocketAddr, UdpSocket};
 use crate::configuration::FromConfiguration;
 
 pub type Tick = u32;
+pub type PlayerId = u32;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct GameState {
@@ -65,22 +66,27 @@ impl FromConfiguration for GameState {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct PlayerMove {
+    pub player_id: PlayerId,
     pub tick: Tick,
     pub dir: Direction,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub enum Message {
-    Ok(Side),
+    // sent by server
+    Ok(Side, PlayerId),
     Taken,
     State(GameState),
-    Score(u32, u32),
-    Join,
     Ready,
+    Score(u32, u32),
+    // sent by both
+    EndingGame(PlayerId),
+    // sent by client
+    Join,
     Move(PlayerMove),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub enum Side {
     Left,
     Right,
@@ -129,7 +135,7 @@ pub fn send_message(socket: &UdpSocket, msg: &Message, who: &SocketAddr) {
 }
 
 // Wait for a message from a specific address
-// Socket chould be in non-blocking mode
+// Socket should be in blocking mode
 pub fn wait_for_message(socket: &UdpSocket, who: &SocketAddr, msg: Message) {
     loop {
         match get_message(socket) {

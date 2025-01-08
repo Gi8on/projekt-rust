@@ -1,11 +1,11 @@
 use std::net::{SocketAddr, UdpSocket};
 
 use super::messages::{
-    get_message, send_message, Direction, GameState, PlayerMove, ReadType, Side,
+    get_message, send_message, send_safely, Direction, GameState, PlayerMove, ReadType, Side,
 };
 use crate::configuration::{Configuration, FromConfiguration};
 use crate::game::{ball::Ball, paddle::Paddle, paddle_like::PaddleLike};
-use crate::messages::Message;
+use crate::messages::{Message, PlayerId};
 use crate::paddle::paddle_from_configuration;
 use ggez::{graphics, Context, GameError, GameResult};
 
@@ -14,6 +14,7 @@ const DESIRED_FPS: u32 = 20;
 const SCREEN_COLOR: graphics::Color = graphics::Color::BLACK;
 
 struct Game {
+    player_id: PlayerId,
     game_state: GameState,
     left_score: u32,
     right_score: u32,
@@ -31,6 +32,12 @@ pub struct PlayerState<L: PaddleLike, R: PaddleLike> {
     dest_addr: SocketAddr,
 }
 
+impl<L: PaddleLike, R: PaddleLike> PlayerState<L, R> {
+    pub fn get_player_id(&self) -> PlayerId {
+        self.game.player_id
+    }
+}
+
 impl<L: PaddleLike + FromConfiguration, R: PaddleLike + FromConfiguration> PlayerState<L, R> {
     pub fn new(
         config: Configuration,
@@ -38,6 +45,7 @@ impl<L: PaddleLike + FromConfiguration, R: PaddleLike + FromConfiguration> Playe
         side: Side,
         socket: UdpSocket,
         dest_addr: SocketAddr,
+        player_id: PlayerId,
     ) -> Self {
         let (paddle_left, paddle_right) = paddle_from_configuration(&config);
         Self {
@@ -45,6 +53,7 @@ impl<L: PaddleLike + FromConfiguration, R: PaddleLike + FromConfiguration> Playe
             paddle_right,
             ball: Ball::from_configuration(&config, ctx),
             game: Game {
+                player_id,
                 game_state: GameState::from_configuration(&config),
                 left_score: 0,
                 right_score: 0,
@@ -79,6 +88,10 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
                                     self.game.right_score = right;
                                     println!("Scoree! left: {}, right: {}", left, right);
                                 }
+                                Message::EndingGame(_) => {
+                                    println!("Ending game");
+                                    std::process::exit(0);
+                                }
                                 _ => {
                                     eprintln!("Unexpected message: {:?}", msg);
                                 }
@@ -100,6 +113,15 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
             //}
         }
         Ok(())
+    }
+
+    fn quit_event(&mut self, _ctx: &mut Context) -> Result<bool, GameError> {
+        send_safely(
+            &self.socket,
+            &Message::EndingGame(self.get_player_id()),
+            &self.dest_addr,
+        );
+        Ok(true)
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -127,6 +149,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
             _ => None,
         } {
             let move_msg = Message::Move(PlayerMove {
+                player_id: self.get_player_id(),
                 tick: self.tick,
                 dir,
             });
@@ -148,6 +171,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
             _ => None,
         } {
             let move_msg = Message::Move(PlayerMove {
+                player_id: self.get_player_id(),
                 tick: self.tick,
                 dir,
             });

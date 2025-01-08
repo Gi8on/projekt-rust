@@ -4,7 +4,7 @@ use crate::paddle::paddle_from_configuration;
 use crate::state::{game_frame, Input, RoundResult};
 use crate::{paddle::Paddle, paddle_like::RectangularPaddle};
 
-use super::messages::{GameState, Tick};
+use super::messages::{GameState, PlayerId, Tick};
 
 pub struct MultiplayerPong {
     pub ball: BallAbstract,
@@ -56,5 +56,19 @@ impl MultiplayerPong {
             self.right_paddle.get_position().into(),
         );
         (rr, game_state)
+    }
+}
+
+pub struct Player {
+    player_id: PlayerId,
+}
+
+impl Player {
+    pub fn new(player_id: PlayerId) -> Self {
+        Self { player_id }
+    }
+
+    pub fn get_player_id(&self) -> PlayerId {
+        self.player_id
     }
 }
