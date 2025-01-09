@@ -1,9 +1,7 @@
-use std::f32::consts::SQRT_2;
-
 use super::paddle_like::PaddleLike;
 use ggez::{graphics, Context, GameError, GameResult};
 
-const DESIRED_FPS: u32 = 20;
+const DESIRED_FPS: u32 = 60;
 
 const SCREEN_COLOR: graphics::Color = graphics::Color::BLACK;
 
@@ -80,7 +78,7 @@ fn bouncing<L: PaddleLike, R: PaddleLike>(
     } else if let Some(v) = v2 {
         ball.set_velocity(v);
     }
-    ball.clamp_velocity(100.0*SQRT_2, 400.0*SQRT_2);
+    ball.clamp_velocity(100.0, 600.0);
 }
 
 pub enum RoundResult {

@@ -9,7 +9,7 @@ use crate::messages::{Message, PlayerId};
 use crate::paddle::paddle_from_configuration;
 use ggez::{graphics, Context, GameError, GameResult};
 
-const DESIRED_FPS: u32 = 20;
+const DESIRED_FPS: u32 = 50;
 
 const SCREEN_COLOR: graphics::Color = graphics::Color::BLACK;
 

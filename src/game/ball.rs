@@ -57,13 +57,11 @@ impl BallAbstract {
         self.position = position.into();
     }
 
-    pub fn clamp_velocity(&mut self, max_speed: f32, min_speed: f32) {
-        let speed = self.velocity_vec.length();
-        if speed > max_speed {
-            self.velocity_vec = self.velocity_vec.normalize() * max_speed;
-        } else if speed < min_speed {
-            self.velocity_vec = self.velocity_vec.normalize() * min_speed;
-        }
+    pub fn clamp_velocity(&mut self, min_speed: f32, max_speed: f32) {
+        let sgnx = self.velocity_vec.x.signum();
+        let sgny = self.velocity_vec.y.signum();
+        self.velocity_vec.x = sgnx * self.velocity_vec.x.abs().clamp(min_speed, max_speed);
+        self.velocity_vec.y = sgny * self.velocity_vec.y.abs().clamp(min_speed, max_speed);
     }
 
     pub fn update_different(&mut self, dt: f32) -> GameResult<Option<bool>> {

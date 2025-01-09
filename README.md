@@ -25,6 +25,7 @@ Simple Pong game:
 - after being paired with another player game starts,
 - sends moves inputted by the user to the server,
 - renders game frames based on GameState messages received from server
+- you play only with arrows
 
 ### Server:
 - multithreaded implementaion each game is managed by its own thread,
@@ -37,15 +38,19 @@ Simple Pong game:
 - server and player check for basic correctness (are adresses correct, are udp messages in order)
 
 ### Usage for player:
+- usage for server: cargo run --bin server -- 
+--port (here port default: 0) 
+--ip (here ip default on 0.0.0.0)
 - cargo run --bin player -- 
 --port (here port, default: 0) 
 --ip (here player ip default: 0.0.0.0) 
 --server-ip (here server ip default: 127.0.0.1) --server-port (required)
-- usage for server: cargo run --bin server -- 
---port (here port default: 0) 
---ip (here ip default on 0.0.0.0)
 
 ### Simplest usage on localhost:
 - cargo run --bin server
 - check what port server connected to
 - cargo run --bin player -- --server-port (here port server connected to)
+
+### Important
+- remeber to always launch server first!
+- when player quits game he should do it by closing game window (with 'x' button in top left corner)

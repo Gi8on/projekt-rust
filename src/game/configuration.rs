@@ -8,7 +8,7 @@ const PADDLE_WIDTH: f32 = 10.0;
 const PADDLE_HEIGHT: f32 = 0.3 * SCREEN_HEIGHT;
 const PADDLE_SPEED: f32 = 200.0;
 
-const PADDLE_TO_BALL_SPEEDUP: f32 = 1.05;
+const PADDLE_TO_BALL_SPEEDUP: f32 = 1.1;
 
 const LEFT_PADDLE_COLOR: graphics::Color = graphics::Color::RED;
 const RIGHT_PADDLE_COLOR: graphics::Color = graphics::Color::BLUE;
