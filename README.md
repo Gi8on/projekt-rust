@@ -36,8 +36,6 @@ Simple Pong game:
 - with high frame rate it doesn't really matter weather some information is lost, it should be unnoticeable,
 - server and player check for basic correctness (are adresses correct, are udp messages in order)
 
-- rozbicie structow paddle i ball na wersje do rysowanie i do logiki z odbijaniem - pozwala nie implementowac tego samego dwa razy
-
 ### Usage for player:
 - cargo run --bin player -- 
 --port (here port, default: 0) 
