@@ -57,6 +57,15 @@ impl BallAbstract {
         self.position = position.into();
     }
 
+    pub fn clamp_velocity(&mut self, max_speed: f32, min_speed: f32) {
+        let speed = self.velocity_vec.length();
+        if speed > max_speed {
+            self.velocity_vec = self.velocity_vec.normalize() * max_speed;
+        } else if speed < min_speed {
+            self.velocity_vec = self.velocity_vec.normalize() * min_speed;
+        }
+    }
+
     pub fn update_different(&mut self, dt: f32) -> GameResult<Option<bool>> {
         let mut bb = self.bounding_area;
         bb.1 += self.radius;

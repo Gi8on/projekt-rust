@@ -1,3 +1,5 @@
+use std::f32::consts::SQRT_2;
+
 use super::paddle_like::PaddleLike;
 use ggez::{graphics, Context, GameError, GameResult};
 
@@ -78,6 +80,7 @@ fn bouncing<L: PaddleLike, R: PaddleLike>(
     } else if let Some(v) = v2 {
         ball.set_velocity(v);
     }
+    ball.clamp_velocity(100.0*SQRT_2, 400.0*SQRT_2);
 }
 
 pub enum RoundResult {
