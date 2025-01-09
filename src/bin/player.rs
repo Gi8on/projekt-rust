@@ -52,7 +52,8 @@ fn main() -> ggez::GameResult {
 
     // Bind the socket to an address and port
     let socket = UdpSocket::bind(format!("{}:{}", ip, port)).expect("couldn't bind to address");
-    println!("Binded on {}:{}", ip, port);
+    let local_addr = socket.local_addr().expect("Couldn't get local address");
+    println!("Binded on {}:{}", local_addr.ip(), local_addr.port());
 
     socket
         .set_read_timeout(None)

@@ -142,7 +142,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
         keyinput: ggez::input::keyboard::KeyInput,
         _repeat: bool,
     ) -> GameResult {
-        println!("key pressed: {:?}", keyinput.keycode);
+        // println!("key pressed: {:?}", keyinput.keycode);
         if let Some(dir) = match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::Up) => Some(Direction::Up(true)),
             Some(ggez::input::keyboard::KeyCode::Down) => Some(Direction::Down(true)),
@@ -164,7 +164,7 @@ impl<L: PaddleLike, R: PaddleLike> ggez::event::EventHandler<GameError> for Play
         _ctx: &mut Context,
         keyinput: ggez::input::keyboard::KeyInput,
     ) -> GameResult {
-        println!("key released: {:?}", keyinput.keycode);
+        // println!("key released: {:?}", keyinput.keycode);
         if let Some(dir) = match keyinput.keycode {
             Some(ggez::input::keyboard::KeyCode::Up) => Some(Direction::Up(false)),
             Some(ggez::input::keyboard::KeyCode::Down) => Some(Direction::Down(false)),

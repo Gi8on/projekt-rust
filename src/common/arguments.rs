@@ -3,10 +3,10 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct ServerArgs {
-    #[clap(short, long, default_value = "127.0.0.1")]
+    #[clap(short, long, default_value = "0.0.0.0")]
     ip: String,
 
-    #[clap(short, long, required = true)]
+    #[clap(short, long, default_value = "0")]
     port: u16,
 }
 
@@ -19,10 +19,10 @@ struct PlayerArgs {
     #[clap(long, required = true)]
     server_port: u16,
 
-    #[clap(short, long, default_value = "127.0.0.1")]
+    #[clap(short, long, default_value = "0.0.0.0")]
     ip: String,
 
-    #[clap(short, long, required = true)]
+    #[clap(short, long, default_value = "0")]
     port: u16,
 }
 

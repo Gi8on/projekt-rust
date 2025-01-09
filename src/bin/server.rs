@@ -35,41 +35,32 @@ impl PlayerInput {
     }
 }
 
-fn accept_player(socket: &UdpSocket, side: Side) -> std::net::SocketAddr {
-    loop {
-        let (msg, who) = match get_message(socket) {
-            ReadType::MessageRead(msg, who) => (msg, who),
-            _ => continue,
-        };
+// fn accept_player(socket: &UdpSocket, side: Side) -> std::net::SocketAddr {
+//     loop {
+//         let (msg, who) = match get_message(socket) {
+//             ReadType::MessageRead(msg, who) => (msg, who),
+//             _ => continue,
+//         };
 
-        match msg {
-            Message::Join => {
-                send_message(socket, &Message::Ok(side, 1), &who);
-                return who;
-            }
-            _ => send_message(socket, &Message::Taken, &who),
-        }
-        panic!("sdhjkfhds");
-    }
-}
+//         match msg {
+//             Message::Join => {
+//                 send_message(socket, &Message::Ok(side, 1), &who);
+//                 return who;
+//             }
+//             _ => send_message(socket, &Message::Taken, &who),
+//         }
+//         panic!("sdhjkfhds");
+//     }
+// }
 
 fn main() {
     let (ip, port) = parse_server();
 
     // Bind the socket to an address and port
     let socket = UdpSocket::bind(format!("{}:{}", ip, port)).expect("couldn't bind to address");
-    println!("Listening on {}:{}", ip, port);
 
-    socket
-        .set_read_timeout(None)
-        .expect("set_read_timeout call failed");
-    let player_left_addr = accept_player(&socket, Side::Left);
-    println!("Connected left player: {:?}", player_left_addr);
-    let player_right_addr = accept_player(&socket, Side::Right);
-    println!("Connected right player: {:?}", player_right_addr);
-    socket
-        .set_nonblocking(true)
-        .expect("set_nonblocking call failed");
+    let local_addr = socket.local_addr().expect("Couldn't get local address");
+    println!("Listening on {}:{}", local_addr.ip(), local_addr.port());
 
     let (sender, receiver) = mpsc::channel();
     thread::spawn(|| thread_starter(receiver));
@@ -215,11 +206,13 @@ enum InterThreadMessage {
 
 // separate thread for starting thread cos it possibly takes long and we don't want to block other games
 fn thread_starter(recv: mpsc::Receiver<InterThreadMessage>) {
-    let mut games: HashMap<GameId, JoinHandle<_>> = HashMap::new();
+    let mut games: HashMap<GameId, JoinHandle<()>> = HashMap::new();
     loop {
         match recv.recv() {
             Ok(msg) => match msg {
                 InterThreadMessage::StartGame(game_starter) => {
+                    println!("starting game");
+                    println!("adding {}", game_starter.game_id());
                     games.insert(
                         game_starter.game_id(),
                         thread::spawn(move || {
@@ -228,11 +221,13 @@ fn thread_starter(recv: mpsc::Receiver<InterThreadMessage>) {
                     );
                 }
                 InterThreadMessage::EndGame(game_id) => {
-                    let game = games.remove(&game_id).unwrap();
-                    if let Err(e) = game.join() {
-                        // don't want to panic here
-                        println!("Game thread panicked: {:?}", e);
-                    }
+                    println!("removing game: {:?}", games.get(&game_id));
+                    // let game = games.remove(&game_id).unwrap();
+                    // if let Err(e) = game.join() {
+                    //     // don't want to panic here
+                    //     // so that server remains usable
+                    //     println!("Game thread panicked: {:?}", e);
+                    // }
                 }
             },
             Err(_) => {
@@ -277,6 +272,7 @@ impl Players {
 
     pub fn is_ready(&self) -> Option<(PlayerId, PlayerId)> {
         let n = self.num_players() as PlayerId;
+        println!("num of players{}", n);
         if n % 2 == 0 {
             Some((n - 1, n - 2))
         } else {
@@ -314,6 +310,7 @@ fn server(socket: &UdpSocket, to_game_starter: mpsc::Sender<InterThreadMessage>)
                 send_message(socket, &Message::Ok(Side::Left, player_id), &who);
 
                 if let Some((left, right)) = players.is_ready() {
+                    println!("sending to game launcher");
                     let game_id = get_game_id(left);
                     let (msg_send, msg_recv) = mpsc::channel();
 
@@ -343,7 +340,7 @@ fn server(socket: &UdpSocket, to_game_starter: mpsc::Sender<InterThreadMessage>)
                     get_game_id(player_move.player_id),
                     Message::Move(player_move),
                 );
-                println!("Player {:?} moved: {:?}", who, player_move);
+                // println!("Player {:?} moved: {:?}", who, player_move);
             }
             _ => {
                 println!("Unexpected message: {:?}", msg);
