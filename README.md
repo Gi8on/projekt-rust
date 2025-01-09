@@ -1,4 +1,4 @@
-### My Rust project
+## My Rust project
 #### author: Marcin Giembicki
 
 I have used simple 2D games engine ggez (good games easily).
@@ -13,8 +13,41 @@ Simple Pong game:
 - rules 1: if upon hitting the ball, paddle is moving in the same y-direction as the ball, the ball is sped up, and if ball and paddle are moving in opposite direction -> the ball is slowed down
 - rules 2: the angle with which ball bounces from the paddle is determined by the distance between place of impact and centre of the paddle
 
-Multiplayer online:
-- checking for basic corectness (are adresses correct, are udp messages in order)
+## Second Iteration of project
+
+### Multiplayer online:
+- I have added online mode for my pong game,
+- when a server is running, players can connect to it by net and then server will pair them up and host the game of pong
+- server can host multiple games of pong at the same time
+
+### Player:
+- player program first connects to a server,
+- after being paired with another player game starts,
+- sends moves inputted by the user to the server,
+- renders game frames based on GameState messages received from server
+
+### Server:
+- multithreaded implementaion each game is managed by its own thread,
+- main thread receives messages from players and sends them by mpsc to appropriate game thread, which in turn generates game state based on them and sends it to players,
+- this implementation gives steady update rate for each pong game,
+
+### Communication:
+- pong games are very dynamic and fast paced, so I used UDP protocol for server-player communication,
+- with high frame rate it doesn't really matter weather some information is lost, it should be unnoticeable,
+- server and player check for basic correctness (are adresses correct, are udp messages in order)
+
 - rozbicie structow paddle i ball na wersje do rysowanie i do logiki z odbijaniem - pozwala nie implementowac tego samego dwa razy
-- usage for player: cargo run --bin player -- --port (here port) --ip (here ip default on 127.0.0.1) --server-ip (here server_ip default 127.0.0.1) --server-port
-- usage for server: cargo run --bin server -- --port (here port) --ip (here ip default on 127.0.0.1)
+
+### Usage for player:
+- cargo run --bin player -- 
+--port (here port, default: 0) 
+--ip (here player ip default: 0.0.0.0) 
+--server-ip (here server ip default: 127.0.0.1) --server-port (required)
+- usage for server: cargo run --bin server -- 
+--port (here port default: 0) 
+--ip (here ip default on 0.0.0.0)
+
+### Simplest usage on localhost:
+- cargo run --bin server
+- check what port server connected to
+- cargo run --bin player -- --server-port (here port server connected to)
